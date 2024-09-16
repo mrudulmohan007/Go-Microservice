@@ -57,7 +57,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//append book into products
+	//append product into products
 
 	users = append(users, user)
 	json.NewEncoder(w).Encode(user)

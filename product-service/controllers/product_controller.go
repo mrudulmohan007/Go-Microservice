@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"go-microservices-app/product-service/models"
+	"io"
+
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,35 +25,53 @@ func ServeHome(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<h1>Hello this is the product page guys!</h1>"))
 }
 
+// Get all products
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(products)
 }
 
+// Get product by ID and fetch user details from user-service
 func GetProductById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for _, product := range products {
 		if product.ProductID == params["id"] {
-			json.NewEncoder(w).Encode(product)
+			// Fetch user details from user-service based on UserID
+			userDetails, err := fetchUserDetails(product.UserID)
+			if err != nil {
+				http.Error(w, "Failed to fetch user details", http.StatusInternalServerError)
+				return
+			}
+
+			// Combine product and user details
+			response := map[string]interface{}{
+				"product": product,
+				"user":    userDetails,
+			}
+
+			// Return combined product and user details
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(response)
 			return
 		}
 	}
 	http.Error(w, "Product not found", http.StatusNotFound)
 }
 
+// Create new product
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Creating one product")
 	w.Header().Set("Content-Type", "application/json")
 
-	//what if the body is empty
 	if r.Body == nil {
 		json.NewEncoder(w).Encode("Please send some data")
+		return
 	}
 
 	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 
-	// Loop through courses to check for duplicate product
+	// Check for duplicate product
 	for _, existingProduct := range products {
 		if existingProduct.ProductName == product.ProductName {
 			json.NewEncoder(w).Encode("Product name already exists")
@@ -58,13 +79,33 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	//append book into products
-
+	// Add the new product
 	products = append(products, product)
 	json.NewEncoder(w).Encode(product)
 }
 
-// updating the products
+// Fetch user details from user-service
+func fetchUserDetails(userID string) (map[string]interface{}, error) {
+	userServiceURL := fmt.Sprintf("http://localhost:8081/users/%s", userID)
+	resp, err := http.Get(userServiceURL)
+	if err != nil {
+		log.Printf("Error fetching user details: %v", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch user details, status code: %d", resp.StatusCode)
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	var userDetails map[string]interface{}
+	json.Unmarshal(body, &userDetails)
+
+	return userDetails, nil
+}
+
+// Update product
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var updatedProduct models.Product
@@ -72,10 +113,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
 	for index, product := range products {
 		if product.ProductID == params["id"] {
-			// Update the product in the slice
 			products[index] = updatedProduct
-
-			// Return the updated product
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(updatedProduct)
 			return
@@ -83,15 +121,14 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Error(w, "Product not found", http.StatusNotFound)
 }
+
+// Delete product
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	for index, product := range products {
 		if product.ProductID == params["id"] {
-			// Remove the product from the slice
 			products = append(products[:index], products[index+1:]...)
-
-			// Return a success message
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]string{"message": "Product deleted successfully"})
 			return
