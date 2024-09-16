@@ -13,8 +13,8 @@ var users []models.User // Slice to hold user data
 
 func init() {
 	// Seed with some dummy users
-	users = append(users, models.User{ID: "1", Name: "John Doe", Email: "john@example.com"})
-	users = append(users, models.User{ID: "2", Name: "Jane Smith", Email: "jane@example.com"})
+	users = append(users, models.User{UserID: "1", UserName: "John Doe", UserEmail: "john@example.com"})
+	users = append(users, models.User{UserID: "2", UserName: "Jane Smith", UserEmail: "jane@example.com"})
 }
 
 // serve home route
@@ -29,7 +29,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 func GetUserById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for _, user := range users {
-		if user.ID == params["id"] {
+		if user.UserID == params["id"] {
 			json.NewEncoder(w).Encode(user)
 			return
 		}
@@ -51,7 +51,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Loop through users to check for duplicate product
 	for _, existingUser := range users {
-		if existingUser.Name == user.Name {
+		if existingUser.UserName == user.UserName {
 			json.NewEncoder(w).Encode("user name already exists")
 			return
 		}
@@ -71,7 +71,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&updatedUser)
 
 	for index, user := range users {
-		if user.ID == params["id"] {
+		if user.UserID == params["id"] {
 			// Update the user in the slice
 			users[index] = updatedUser
 
@@ -90,7 +90,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	for index, user := range users {
-		if user.ID == params["id"] {
+		if user.UserID == params["id"] {
 			// Remove the user from the slice
 			users = append(users[:index], users[index+1:]...)
 

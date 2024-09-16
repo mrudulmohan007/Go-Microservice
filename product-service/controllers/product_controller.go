@@ -13,8 +13,8 @@ var products []models.Product
 
 func init() {
 	// Seed with some dummy products
-	products = append(products, models.Product{ID: "1", Name: "Laptop", Price: 1000, UserID: "1"})
-	products = append(products, models.Product{ID: "2", Name: "Phone", Price: 500, UserID: "2"})
+	products = append(products, models.Product{ProductID: "1", ProductName: "Laptop", ProductPrice: 1000, UserID: "1"})
+	products = append(products, models.Product{ProductID: "2", ProductName: "Phone", ProductPrice: 500, UserID: "2"})
 }
 
 // serve home route
@@ -30,7 +30,7 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 func GetProductById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	for _, product := range products {
-		if product.ID == params["id"] {
+		if product.ProductID == params["id"] {
 			json.NewEncoder(w).Encode(product)
 			return
 		}
@@ -52,7 +52,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	// Loop through courses to check for duplicate product
 	for _, existingProduct := range products {
-		if existingProduct.Name == product.Name {
+		if existingProduct.ProductName == product.ProductName {
 			json.NewEncoder(w).Encode("Product name already exists")
 			return
 		}
@@ -71,7 +71,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&updatedProduct)
 
 	for index, product := range products {
-		if product.ID == params["id"] {
+		if product.ProductID == params["id"] {
 			// Update the product in the slice
 			products[index] = updatedProduct
 
@@ -87,7 +87,7 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	for index, product := range products {
-		if product.ID == params["id"] {
+		if product.ProductID == params["id"] {
 			// Remove the product from the slice
 			products = append(products[:index], products[index+1:]...)
 
