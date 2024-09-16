@@ -16,6 +16,11 @@ func init() {
 	products = append(products, models.Product{ID: "2", Name: "Phone", Price: 500, UserID: "2"})
 }
 
+// serve home route
+func ServeHome(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("<h1>Hello this is the product page guys!</h1>"))
+}
+
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(products)
@@ -42,4 +47,40 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	// Return the newly created product
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(product)
+}
+
+// updating the products
+func UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var updatedProduct models.Product
+	_ = json.NewDecoder(r.Body).Decode(&updatedProduct)
+
+	for index, product := range products {
+		if product.ID == params["id"] {
+			// Update the product in the slice
+			products[index] = updatedProduct
+
+			// Return the updated product
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(updatedProduct)
+			return
+		}
+	}
+	http.Error(w, "Product not found", http.StatusNotFound)
+}
+func DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	for index, product := range products {
+		if product.ID == params["id"] {
+			// Remove the product from the slice
+			products = append(products[:index], products[index+1:]...)
+
+			// Return a success message
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]string{"message": "Product deleted successfully"})
+			return
+		}
+	}
+	http.Error(w, "Product not found", http.StatusNotFound)
 }
