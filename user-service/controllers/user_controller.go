@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-microservices-app/user-service/models"
 	"net/http"
 
@@ -37,14 +38,28 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Creating one user....!")
+	w.Header().Set("Content-Type", "application/json")
+
+	//what if the body is empty
+	if r.Body == nil {
+		json.NewEncoder(w).Encode("Please send some data")
+	}
+
 	var user models.User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 
-	// Add the user to the slice
-	users = append(users, user)
+	// Loop through users to check for duplicate product
+	for _, existingUser := range users {
+		if existingUser.Name == user.Name {
+			json.NewEncoder(w).Encode("user name already exists")
+			return
+		}
+	}
 
-	// Return the newly created user
-	w.Header().Set("Content-Type", "application/json")
+	//append book into products
+
+	users = append(users, user)
 	json.NewEncoder(w).Encode(user)
 }
 

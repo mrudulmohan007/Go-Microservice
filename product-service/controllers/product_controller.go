@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-microservices-app/product-service/models"
 	"net/http"
 
@@ -38,14 +39,28 @@ func GetProductById(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Creating one product")
+	w.Header().Set("Content-Type", "application/json")
+
+	//what if the body is empty
+	if r.Body == nil {
+		json.NewEncoder(w).Encode("Please send some data")
+	}
+
 	var product models.Product
 	_ = json.NewDecoder(r.Body).Decode(&product)
 
-	// Add the product to the slice
-	products = append(products, product)
+	// Loop through courses to check for duplicate product
+	for _, existingProduct := range products {
+		if existingProduct.Name == product.Name {
+			json.NewEncoder(w).Encode("Product name already exists")
+			return
+		}
+	}
 
-	// Return the newly created product
-	w.Header().Set("Content-Type", "application/json")
+	//append book into products
+
+	products = append(products, product)
 	json.NewEncoder(w).Encode(product)
 }
 
