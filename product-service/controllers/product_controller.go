@@ -86,7 +86,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 // Fetch user details from user-service
 func fetchUserDetails(userID string) (map[string]interface{}, error) {
-	userServiceURL := fmt.Sprintf("http://user-service:8081/users/%s", userID) //if u use docker-compose give user-service instead of this localhost
+	userServiceURL := fmt.Sprintf("http://localhost:8081/users/%s", userID) //if u use docker-compose give user-service instead of this localhost
 	resp, err := http.Get(userServiceURL)
 	if err != nil {
 		log.Printf("Error fetching user details: %v", err)
