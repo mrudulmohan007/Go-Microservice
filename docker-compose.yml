@@ -4,8 +4,17 @@ services:
     build: ./user-service
     ports:
       - "8081:8081"
+    networks:
+      - mynetwork
 
   product-service:
     build: ./product-service
     ports:
       - "8082:8082"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+
